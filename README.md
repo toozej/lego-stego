@@ -1,14 +1,16 @@
-# golang-starter
+# lego-stego
 
-![GitHub go.mod Go version](https://img.shields.io/github/go-mod/go-version/toozej/golang-starter)
-[![Go Report Card](https://goreportcard.com/badge/github.com/toozej/golang-starter)](https://goreportcard.com/report/github.com/toozej/golang-starter)
-![GitHub Actions CI Workflow Status](https://img.shields.io/github/actions/workflow/status/toozej/golang-starter/ci.yaml)
-![GitHub Actions Release Workflow Status](https://img.shields.io/github/actions/workflow/status/toozej/golang-starter/release.yaml)
-![GitHub Actions Weekly Docker Refresh Workflow Status](https://img.shields.io/github/actions/workflow/status/toozej/golang-starter/weekly-docker-refresh.yaml)
-![Docker Pulls](https://img.shields.io/docker/pulls/toozej/golang-starter)
-![GitHub Downloads (all assets, all releases)](https://img.shields.io/github/downloads/toozej/golang-starter/total)
+![GitHub go.mod Go version](https://img.shields.io/github/go-mod/go-version/toozej/lego-stego)
+[![Go Report Card](https://goreportcard.com/badge/github.com/toozej/lego-stego)](https://goreportcard.com/report/github.com/toozej/lego-stego)
+![GitHub Actions CI Workflow Status](https://img.shields.io/github/actions/workflow/status/toozej/lego-stego/ci.yaml)
+![GitHub Actions Release Workflow Status](https://img.shields.io/github/actions/workflow/status/toozej/lego-stego/release.yaml)
+![GitHub Actions Weekly Docker Refresh Workflow Status](https://img.shields.io/github/actions/workflow/status/toozej/lego-stego/weekly-docker-refresh.yaml)
+![Docker Pulls](https://img.shields.io/docker/pulls/toozej/lego-stego)
+![GitHub Downloads (all assets, all releases)](https://img.shields.io/github/downloads/toozej/lego-stego/total)
 
-Golang starter template
+Go-based CLI tool for [Steganography](https://en.wikipedia.org/wiki/Steganography)
+
+<img src="img/avatar.png" alt="lego-stego avatar" style="background-color: #FFFFFF;" />
 
 ## features of this starter template
 - follows common Golang best practices in terms of repo/project layout, and includes explanations of what goes where in README files
@@ -24,27 +26,6 @@ Golang starter template
 - pre-commit hooks for ensuring formatting, linting, security checks, etc.
 
 ## changes required to use this as a starter template
-- generate a GitHub fine-grained access token from https://github.com/settings/tokens?type=beta (used in repo as "GITHUB_TOKEN" and in GitHub Actions Secrets as "GH_TOKEN") with the following read/write permissions:
-    - actions
-    - attestations
-    - code scanning alerts
-    - commit statuses
-    - contents
-    - dependabot alerts
-    - dependabot secrets
-    - deployments
-    - environments
-    - issues
-    - pages
-    - pull requests
-    - repository security advisories
-    - secret scanning alerts
-    - secrets
-    - webhooks
-    - workflows
-- run `use_starter.sh` script to rename project files, generate Cosign artifacts, gather and upload secrets to GitHub Actions, etc.
-    - run `./scripts/use_starter.sh $NEW_PROJECT_NAME_GOES_HERE`
-    - to rename with a different GitHub username `./scripts/use_starter.sh $NEW_PROJECT_NAME_GOES_HERE $GITHUB_USERNAME_GOES_HERE`
 - set up new repository in quay.io web console
     - (DockerHub and GitHub Container Registry do this automatically on first push/publish)
     - name must match Git repo name
@@ -54,5 +35,3 @@ Golang starter template
     - scroll down to "Danger Zone"
     - change visibility to public
 
-## changes required to update golang version
-- `make update-golang-version`

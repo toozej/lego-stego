@@ -27,12 +27,12 @@ LDFLAGS = -s -w \
 	-X $(VER).Builder=$(BUILDER)
 	
 # Define the repository URL
-REPO_URL := https://github.com/toozej/golang-starter
+REPO_URL := https://github.com/toozej/lego-stego
 
 # Detect the OS and architecture
 OS := $(shell uname -s)
 ARCH := $(shell uname -m)
-LATEST_RELEASE_URL := $(REPO_URL)/releases/latest/download/golang-starter_$(OS)_$(ARCH).tar.gz
+LATEST_RELEASE_URL := $(REPO_URL)/releases/latest/download/lego-stego_$(OS)_$(ARCH).tar.gz
 
 ifeq ($(OS), Linux)
 	OPENER=xdg-open
@@ -48,22 +48,22 @@ local-release-verify: local-release local-sign local-verify ## Release and verif
 pre-reqs: pre-commit-install ## Install pre-commit hooks and necessary binaries
 
 vet: ## Run `go vet` in Docker
-	docker build --target vet -f $(CURDIR)/Dockerfile -t toozej/golang-starter:latest . 
+	docker build --target vet -f $(CURDIR)/Dockerfile -t toozej/lego-stego:latest . 
 
 test: ## Run `go test` with race detection in Docker
-	docker build --progress=plain --target test -f $(CURDIR)/Dockerfile -t toozej/golang-starter:latest .
+	docker build --progress=plain --target test -f $(CURDIR)/Dockerfile -t toozej/lego-stego:latest .
 
 build: ## Build Docker image, including running tests
-	docker build -f $(CURDIR)/Dockerfile -t toozej/golang-starter:latest .
+	docker build -f $(CURDIR)/Dockerfile -t toozej/lego-stego:latest .
 
-get-cosign-pub-key: ## Get golang-starter Cosign public key from GitHub
-	test -f $(CURDIR)/golang-starter.pub || curl --silent https://raw.githubusercontent.com/toozej/golang-starter/main/golang-starter.pub -O
+get-cosign-pub-key: ## Get lego-stego Cosign public key from GitHub
+	test -f $(CURDIR)/lego-stego.pub || curl --silent https://raw.githubusercontent.com/toozej/lego-stego/main/lego-stego.pub -O
 
 verify: get-cosign-pub-key ## Verify Docker image with Cosign
-	cosign verify --key $(CURDIR)/golang-starter.pub toozej/golang-starter:latest
+	cosign verify --key $(CURDIR)/lego-stego.pub toozej/lego-stego:latest
 
 run: ## Run built Docker image
-	docker run --rm --name golang-starter --env-file $(CURDIR)/.env toozej/golang-starter:latest
+	docker run --rm --name lego-stego --env-file $(CURDIR)/.env toozej/lego-stego:latest
 
 up: test build ## Run Docker Compose project with build Docker image
 	docker compose -f docker-compose.yml down --remove-orphans
@@ -74,21 +74,21 @@ down: ## Stop running Docker Compose project
 	docker compose -f docker-compose.yml down --remove-orphans
 
 distroless-build: ## Build Docker image using distroless as final base
-	docker build -f $(CURDIR)/Dockerfile.distroless -t toozej/golang-starter:distroless . 
+	docker build -f $(CURDIR)/Dockerfile.distroless -t toozej/lego-stego:distroless . 
 
 distroless-run: ## Run built Docker image using distroless as final base
-	docker run --rm --name golang-starter -v $(CURDIR)/config:/config toozej/golang-starter:distroless
+	docker run --rm --name lego-stego -v $(CURDIR)/config:/config toozej/lego-stego:distroless
 
-install: ## Install golang-starter from latest GitHub release
+install: ## Install lego-stego from latest GitHub release
 	if command -v go; then \
-			go install github.com/toozej/golang-starter@latest ; \
+			go install github.com/toozej/lego-stego@latest ; \
 	else \
-			echo "Downloading golang-starter binary for $(OS)-$(ARCH)..."; \
+			echo "Downloading lego-stego binary for $(OS)-$(ARCH)..."; \
 			mkdir -p $(CURDIR)/tmp; \
-			curl --silent -L -o $(CURDIR)/tmp/golang-starter.tgz $(LATEST_RELEASE_URL); \
-			tar -xzf $(CURDIR)/tmp/golang-starter.tgz -C $(CURDIR)/tmp/; \
-			chmod +x $(CURDIR)/tmp/golang-starter; \
-			sudo mv $(CURDIR)/tmp/golang-starter /usr/local/bin/golang-starter; \
+			curl --silent -L -o $(CURDIR)/tmp/lego-stego.tgz $(LATEST_RELEASE_URL); \
+			tar -xzf $(CURDIR)/tmp/lego-stego.tgz -C $(CURDIR)/tmp/; \
+			chmod +x $(CURDIR)/tmp/lego-stego; \
+			sudo mv $(CURDIR)/tmp/lego-stego /usr/local/bin/lego-stego; \
 			rm -rf $(CURDIR)/tmp; \
 	fi
 
@@ -115,13 +115,13 @@ local-build: ## Run `go build` using locally installed golang toolchain
 
 local-run: ## Run locally built binary
 	if test -e $(CURDIR)/.env; then \
-		export `cat $(CURDIR)/.env | xargs` && $(CURDIR)/out/golang-starter; \
+		export `cat $(CURDIR)/.env | xargs` && $(CURDIR)/out/lego-stego; \
 	else \
 		echo "No environment variables found at $(CURDIR)/.env. Cannot run."; \
 	fi
 
 local-kill: ## Kill any currently running locally built binary
-	-pkill -f '$(CURDIR)/out/golang-starter'
+	-pkill -f '$(CURDIR)/out/lego-stego'
 
 local-iterate: ## Run `make local-build local-run` via `air` any time a .go or .tmpl file changes
 	air -c $(CURDIR)/.air.toml
@@ -131,33 +131,33 @@ local-release-test: ## Build assets and test goreleaser config using locally ins
 	goreleaser build --clean --snapshot
 
 local-release: local-test docker-login ## Release assets using locally installed golang toolchain and goreleaser
-	if test -e $(CURDIR)/golang-starter.key && test -e $(CURDIR)/.env; then \
+	if test -e $(CURDIR)/lego-stego.key && test -e $(CURDIR)/.env; then \
 		export `cat $(CURDIR)/.env | xargs` && goreleaser release --clean; \
 	else \
-		echo "no cosign private key found at $(CURDIR)/golang-starter.key. Cannot release."; \
+		echo "no cosign private key found at $(CURDIR)/lego-stego.key. Cannot release."; \
 	fi
 
 local-sign: local-test ## Sign locally installed golang toolchain and cosign
-	if test -e $(CURDIR)/golang-starter.key && test -e $(CURDIR)/.env; then \
-		export `cat $(CURDIR)/.env | xargs` && cosign sign-blob --key=$(CURDIR)/golang-starter.key --output-signature=$(CURDIR)/golang-starter.sig $(CURDIR)/out/golang-starter; \
+	if test -e $(CURDIR)/lego-stego.key && test -e $(CURDIR)/.env; then \
+		export `cat $(CURDIR)/.env | xargs` && cosign sign-blob --key=$(CURDIR)/lego-stego.key --output-signature=$(CURDIR)/lego-stego.sig $(CURDIR)/out/lego-stego; \
 	else \
-		echo "no cosign private key found at $(CURDIR)/golang-starter.key. Cannot release."; \
+		echo "no cosign private key found at $(CURDIR)/lego-stego.key. Cannot release."; \
 	fi
 
 local-verify: get-cosign-pub-key ## Verify locally compiled binary
 	# cosign here assumes you're using Linux AMD64 binary
-	cosign verify-blob --key $(CURDIR)/golang-starter.pub --signature $(CURDIR)/golang-starter.sig $(CURDIR)/out/golang-starter
+	cosign verify-blob --key $(CURDIR)/lego-stego.pub --signature $(CURDIR)/lego-stego.sig $(CURDIR)/out/lego-stego
 
 local-install: local-build local-verify ## Install compiled binary to local machine
-	sudo cp $(CURDIR)/out/golang-starter /usr/local/bin/golang-starter
-	sudo chmod 0755 /usr/local/bin/golang-starter
+	sudo cp $(CURDIR)/out/lego-stego /usr/local/bin/lego-stego
+	sudo chmod 0755 /usr/local/bin/lego-stego
 
 upload-secrets-to-gh: ## Upload secrets from .env file to GitHub Actions Secrets + Dependabot
-	$(CURDIR)/scripts/upload_secrets_to_github.sh golang-starter 
+	$(CURDIR)/scripts/upload_secrets_to_github.sh lego-stego 
 
 upload-secrets-envfile-to-1pass: ## Upload secrets and .env file to 1Password
-	$(CURDIR)/scripts/upload_secrets_to_1password secrets golang-starter
-	$(CURDIR)/scripts/upload_secrets_to_1password envfile golang-starter
+	$(CURDIR)/scripts/upload_secrets_to_1password secrets lego-stego
+	$(CURDIR)/scripts/upload_secrets_to_1password envfile lego-stego
 
 docker-login: ## Login to Docker registries used to publish images to
 	if test -e $(CURDIR)/.env; then \
@@ -215,7 +215,7 @@ pre-commit-install: ## Install pre-commit hooks and necessary binaries
 pre-commit-run: ## Run pre-commit hooks against all files
 	pre-commit run --all-files
 	# manually run the following checks since their pre-commits aren't working or don't exist
-	go-licenses report github.com/toozej/golang-starter/cmd/golang-starter
+	go-licenses report github.com/toozej/lego-stego/cmd/lego-stego
 	govulncheck ./...
 
 update-golang-version: ## Update to latest Golang version across the repo
@@ -282,7 +282,7 @@ benchmark: ## Run benchmarks
 	go test -bench=. -benchmem $(CURDIR)/internal/starter/
 
 clean: ## Remove any locally compiled binaries and profiles
-	rm -f $(CURDIR)/out/golang-starter
+	rm -f $(CURDIR)/out/lego-stego
 	rm -rf $(CURDIR)/profiles/
 
 help: ## Display help text

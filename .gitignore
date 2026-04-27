@@ -1,5 +1,5 @@
 # Cosign
-golang-starter.key
+lego-stego.key
 cosign.key
 *.sig
 

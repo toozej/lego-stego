@@ -1,8 +1,8 @@
-// Package cmd provides command-line interface functionality for the golang-starter application.
+// Package cmd provides command-line interface functionality for the lego-stego application.
 //
 // This package implements the root command and manages the command-line interface
 // using the cobra library. It handles configuration, logging setup, and command
-// execution for the golang-starter template application.
+// execution for the lego-stego template application.
 //
 // The package integrates with several components:
 //   - Configuration management through pkg/config
@@ -12,7 +12,7 @@
 //
 // Example usage:
 //
-//	import "github.com/toozej/golang-starter/cmd/golang-starter"
+//	import "github.com/toozej/lego-stego/cmd/lego-stego"
 //
 //	func main() {
 //		cmd.Execute()
@@ -26,10 +26,10 @@ import (
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 
-	"github.com/toozej/golang-starter/internal/starter"
-	"github.com/toozej/golang-starter/pkg/config"
-	"github.com/toozej/golang-starter/pkg/man"
-	"github.com/toozej/golang-starter/pkg/version"
+	"github.com/toozej/lego-stego/internal/starter"
+	"github.com/toozej/lego-stego/pkg/config"
+	"github.com/toozej/lego-stego/pkg/man"
+	"github.com/toozej/lego-stego/pkg/version"
 )
 
 // conf holds the application configuration loaded from environment variables.
@@ -41,7 +41,7 @@ var (
 	debug bool
 )
 
-// rootCmd defines the base command for the golang-starter CLI application.
+// rootCmd defines the base command for the lego-stego CLI application.
 // It serves as the entry point for all command-line operations and establishes
 // the application's structure, flags, and subcommands.
 //
@@ -49,7 +49,7 @@ var (
 // to the starter package. It supports persistent flags that are inherited by
 // all subcommands.
 var rootCmd = &cobra.Command{
-	Use:              "golang-starter",
+	Use:              "lego-stego",
 	Short:            "golang starter template",
 	Long:             `Golang starter template using cobra, logrus, dotenv and env modules`,
 	Args:             cobra.ExactArgs(0),

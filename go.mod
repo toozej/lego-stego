@@ -1,4 +1,4 @@
-module github.com/toozej/golang-starter
+module github.com/toozej/lego-stego
 
 go 1.26
 
