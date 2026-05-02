@@ -87,7 +87,7 @@ jobs:
         with:
           distribution: goreleaser
           version: latest
-          args: release --clean --skip=announce,archive,before,sbom,validate
+          args: release --clean --skip=announce,archive,before,homebrew,nfpm,sbom,sign,validate
           workdir: '/home/runner/work/lego-stego/lego-stego'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

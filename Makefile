@@ -29,6 +29,11 @@ LDFLAGS = -s -w \
 # Define the repository URL
 REPO_URL := https://github.com/toozej/lego-stego
 
+# Define Docker image info
+IMAGE_AUTHOR = toozej
+IMAGE_NAME = lego-stego
+IMAGE_TAG = latest
+
 # Detect the OS and architecture
 OS := $(shell uname -s)
 ARCH := $(shell uname -m)
@@ -40,7 +45,7 @@ else
 	OPENER=open
 endif
 
-.PHONY: all vet test build verify run up down distroless-build distroless-run install local local-vet local-test local-cover local-run local-kill local-iterate local-release-test local-release local-sign local-verify local-release-verify local-install get-cosign-pub-key docker-login pre-commit-install pre-commit-run pre-commit pre-reqs update-golang-version upload-secrets-to-gh upload-secrets-envfile-to-1pass docs diagrams mutation-test test-changed watch-test profile-cpu profile-mem profile-all benchmark clean help
+.PHONY: all vet test build verify run up down distroless-build distroless-run install local local-vet local-test local-cover local-run local-kill local-iterate local-release-test local-release local-sign local-verify local-release-verify local-install get-cosign-pub-key docker-login pre-commit-install pre-commit-run pre-commit pre-reqs update-golang-version upload-secrets-to-gh upload-secrets-envfile-to-1pass docs diagrams mutation-test test-changed watch-test profile-cpu profile-mem profile-all benchmark demo clean help
 
 all: vet pre-commit clean test build verify run ## Run default workflow via Docker
 local: local-update-deps local-vendor local-vet pre-commit clean local-test local-cover local-build local-sign local-verify local-kill local-run ## Run default workflow using locally installed Golang toolchain
@@ -48,22 +53,23 @@ local-release-verify: local-release local-sign local-verify ## Release and verif
 pre-reqs: pre-commit-install ## Install pre-commit hooks and necessary binaries
 
 vet: ## Run `go vet` in Docker
-	docker build --target vet -f $(CURDIR)/Dockerfile -t toozej/lego-stego:latest . 
+	docker build --target vet -f $(CURDIR)/Dockerfile -t $(IMAGE_AUTHOR)/$(IMAGE_NAME):$(IMAGE_TAG) .
 
 test: ## Run `go test` with race detection in Docker
-	docker build --progress=plain --target test -f $(CURDIR)/Dockerfile -t toozej/lego-stego:latest .
+	docker build --progress=plain --target test -f $(CURDIR)/Dockerfile -t $(IMAGE_AUTHOR)/$(IMAGE_NAME):$(IMAGE_TAG) .
 
 build: ## Build Docker image, including running tests
-	docker build -f $(CURDIR)/Dockerfile -t toozej/lego-stego:latest .
+	docker build -f $(CURDIR)/Dockerfile -t $(IMAGE_AUTHOR)/$(IMAGE_NAME):$(IMAGE_TAG) .
 
 get-cosign-pub-key: ## Get lego-stego Cosign public key from GitHub
 	test -f $(CURDIR)/lego-stego.pub || curl --silent https://raw.githubusercontent.com/toozej/lego-stego/main/lego-stego.pub -O
 
 verify: get-cosign-pub-key ## Verify Docker image with Cosign
-	cosign verify --key $(CURDIR)/lego-stego.pub toozej/lego-stego:latest
+	cosign verify --key $(CURDIR)/lego-stego.pub $(IMAGE_AUTHOR)/$(IMAGE_NAME):$(IMAGE_TAG)
 
 run: ## Run built Docker image
-	docker run --rm --name lego-stego --env-file $(CURDIR)/.env toozej/lego-stego:latest
+	-docker kill $(IMAGE_NAME)
+	docker run --rm --name $(IMAGE_NAME) --env-file $(CURDIR)/.env $(IMAGE_AUTHOR)/$(IMAGE_NAME):$(IMAGE_TAG)
 
 up: test build ## Run Docker Compose project with build Docker image
 	docker compose -f docker-compose.yml down --remove-orphans
@@ -74,10 +80,10 @@ down: ## Stop running Docker Compose project
 	docker compose -f docker-compose.yml down --remove-orphans
 
 distroless-build: ## Build Docker image using distroless as final base
-	docker build -f $(CURDIR)/Dockerfile.distroless -t toozej/lego-stego:distroless . 
+	docker build -f $(CURDIR)/Dockerfile.distroless -t $(IMAGE_AUTHOR)/$(IMAGE_NAME):distroless . 
 
 distroless-run: ## Run built Docker image using distroless as final base
-	docker run --rm --name lego-stego -v $(CURDIR)/config:/config toozej/lego-stego:distroless
+	docker run --rm --name $(IMAGE_NAME) -v $(CURDIR)/config:/config $(IMAGE_AUTHOR)/$(IMAGE_NAME):distroless
 
 install: ## Install lego-stego from latest GitHub release
 	if command -v go; then \
@@ -96,6 +102,7 @@ local-update-deps: ## Run `go get -t -u ./...` to update Go module dependencies
 	go get -t -u ./...
 
 local-vet: ## Run `go vet` using locally installed golang toolchain
+	go fmt $(CURDIR)/...
 	go vet $(CURDIR)/...
 
 local-vendor: ## Run `go mod tidy & vendor` using locally installed golang toolchain
@@ -205,6 +212,8 @@ pre-commit-install: ## Install pre-commit hooks and necessary binaries
 	go install github.com/air-verse/air@latest
 	# graphviz for dot
 	command -v dot || brew install graphviz || sudo apt install -y graphviz || sudo dnf install -y graphviz
+	# viu for PNG image viewing in terminal
+	command -v viu || brew install viu || cargo install viu
 	# install and update pre-commits
 	# determine if on Debian 12 and if so use pip to install more modern pre-commit version
 	grep --silent "VERSION=\"12 (bookworm)\"" /etc/os-release && apt install -y --no-install-recommends python3-pip && python3 -m pip install --break-system-packages --upgrade pre-commit || echo "OS is not Debian 12 bookworm"
@@ -264,14 +273,14 @@ watch-test: ## Watch for file changes and run tests for changed packages
 profile-cpu: ## Generate CPU performance profile
 	@echo "Generating CPU profile..."
 	mkdir -p $(CURDIR)/profiles
-	go test -bench=. -cpuprofile=$(CURDIR)/profiles/cpu.prof $(CURDIR)/internal/starter/
+	go test -bench=. -cpuprofile=$(CURDIR)/profiles/cpu.prof $(CURDIR)/internal/
 	@echo "CPU profile generated at $(CURDIR)/profiles/cpu.prof"
 	go tool pprof -http $(CURDIR)/profiles/cpu.prof
 
 profile-mem: ## Generate memory performance profile
 	@echo "Generating memory profile..."
 	mkdir -p $(CURDIR)/profiles
-	go test -bench=. -memprofile=$(CURDIR)/profiles/mem.prof $(CURDIR)/internal/starter/
+	go test -bench=. -memprofile=$(CURDIR)/profiles/mem.prof $(CURDIR)/internal/
 	@echo "Memory profile generated at $(CURDIR)/profiles/mem.prof"
 	go tool pprof -http $(CURDIR)/profiles/mem.prof
 
@@ -279,11 +288,55 @@ profile-all: profile-cpu profile-mem ## Generate both CPU and memory profiles
 
 benchmark: ## Run benchmarks
 	@echo "Running benchmarks..."
-	go test -bench=. -benchmem $(CURDIR)/internal/starter/
+	go test -bench=. -benchmem $(CURDIR)/internal/
 
-clean: ## Remove any locally compiled binaries and profiles
-	rm -f $(CURDIR)/out/lego-stego
-	rm -rf $(CURDIR)/profiles/
+DEMO_PASSWORD ?= lego-stego-demo
+DEMO_DIR := $(CURDIR)/demo-output
+DEMO_CARRIER := $(CURDIR)/demo-assets/avatar.png
+DEMO_STEGO_HIDE := $(DEMO_DIR)/demo_stego_hide.png
+DEMO_STEGO_EMBED := $(DEMO_DIR)/demo_stego_embed.png
+DEMO_REVEALED_FILE := $(DEMO_DIR)/demo_revealed_secret.txt
+DEMO_EXTRACTED_QR := $(DEMO_DIR)/demo_extracted_qr.png
+DEMO_SECRET_FILE := $(DEMO_DIR)/demo_secret.txt
+DEMO_QR_URL := $(REPO_URL)
+
+demo: local-build ## Run demo use-cases: hide, info, reveal, extract, embed
+	@mkdir -p $(DEMO_DIR)
+	@echo "=== Preparing demo secret file ==="
+	@echo "This is a lego-stego demo secret message." > $(DEMO_SECRET_FILE)
+	@echo "=== 1. hide: Hide a secret file inside an image ==="
+	$(CURDIR)/out/lego-stego hide -i $(DEMO_CARRIER) -o $(DEMO_STEGO_HIDE) -f $(DEMO_SECRET_FILE) --password $(DEMO_PASSWORD)
+	@echo "=== 2. info: Inspect the stego image for hidden payload ==="
+	$(CURDIR)/out/lego-stego info -i $(DEMO_STEGO_HIDE)
+	@echo "=== 3. reveal: Reveal the hidden file from the stego image ==="
+	$(CURDIR)/out/lego-stego reveal -i $(DEMO_STEGO_HIDE) -o $(DEMO_REVEALED_FILE) --password $(DEMO_PASSWORD)
+	@echo "=== Revealed content ==="
+	@cat $(DEMO_REVEALED_FILE)
+	@echo "=== 4. embed: Embed a QR code (repo URL) into an image ==="
+	$(CURDIR)/out/lego-stego embed -i $(DEMO_CARRIER) -o $(DEMO_STEGO_EMBED) -u $(DEMO_QR_URL) --password $(DEMO_PASSWORD)
+	@echo "=== 5. extract: Extract and decode the QR code from the stego image ==="
+	$(CURDIR)/out/lego-stego extract -i $(DEMO_STEGO_EMBED) -o $(DEMO_EXTRACTED_QR) --password $(DEMO_PASSWORD)
+	@echo "=== Demo complete ==="
+	@echo "Generated files in $(DEMO_DIR)/:"
+	@echo "  Stego (hide): $(DEMO_STEGO_HIDE)"
+	@viu $(DEMO_STEGO_HIDE)
+	@echo "  Stego (embed): $(DEMO_STEGO_EMBED)"
+	@viu $(DEMO_STEGO_EMBED)
+	@echo "  Revealed file: $(DEMO_REVEALED_FILE)"
+	@cat $(DEMO_REVEALED_FILE)
+	@echo "  Extracted QR:  "
+	@viu $(DEMO_EXTRACTED_QR)
+
+clean: ## Remove any locally compiled binaries, profiles, demo output, and built Docker image
+	@echo "=== Cleaning up compiled binaries, profiles, demo output, and built Docker image ==="
+	@rm -f $(CURDIR)/out/lego-stego
+	@rm -rf $(CURDIR)/profiles/
+	@rm -rf $(CURDIR)/dist/
+	@rm -rf $(CURDIR)/c.out
+	@rm -rf $(CURDIR)/manpages/
+	@rm -rf $(CURDIR)/completions/
+	@rm -rf $(DEMO_DIR)
+	-docker image rm $(IMAGE_AUTHOR)/$(IMAGE_NAME):$(IMAGE_TAG)
 
 help: ## Display help text
 	@grep -E '^[a-zA-Z_-]+ ?:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'

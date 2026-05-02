@@ -29,6 +29,7 @@ manpages/
 dist/
 docs/diagrams/go-diagrams/
 profiles/
+demo-output/
 
 # Temporary files
 prompt.txt
