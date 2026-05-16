@@ -1,5 +1,5 @@
 # setup project and deps
-FROM golang:1.26-bookworm AS init
+FROM golang:1.26-trixie AS init
 
 WORKDIR /go/lego-stego/
 
@@ -31,5 +31,5 @@ FROM scratch
 # Copy our static executable.
 COPY --from=build /go/lego-stego/lego-stego /go/bin/lego-stego
 # Run the binary.
-USER non-root
+USER nonroot
 ENTRYPOINT ["/go/bin/lego-stego"]
