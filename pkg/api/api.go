@@ -46,7 +46,7 @@ func ExtractQR(in, out string, password string) (string, error) {
 		if err != nil {
 			return "", err
 		}
-		defer outFile.Close()
+		defer func() { _ = outFile.Close() }()
 
 		if err := png.Encode(outFile, qrImg); err != nil {
 			return "", err
@@ -62,7 +62,7 @@ func EmbedFile(in, out string, data []byte, password string) error {
 	if err != nil {
 		return err
 	}
-	defer f.Close()
+	defer func() { _ = f.Close() }()
 
 	img, _, err := image.Decode(f)
 	if err != nil {
@@ -79,7 +79,7 @@ func EmbedFile(in, out string, data []byte, password string) error {
 	if err != nil {
 		return err
 	}
-	defer outF.Close()
+	defer func() { _ = outF.Close() }()
 
 	return png.Encode(outF, stego)
 }
@@ -90,7 +90,7 @@ func ExtractFile(in string, password string) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer f.Close()
+	defer func() { _ = f.Close() }()
 
 	img, _, err := image.Decode(f)
 	if err != nil {

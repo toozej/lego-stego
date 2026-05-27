@@ -16,7 +16,7 @@ func EmbedQRCode(url, inputPath, outputPath string) error {
 	if err != nil {
 		return err
 	}
-	defer f.Close()
+	defer func() { _ = f.Close() }()
 
 	img, _, err := image.Decode(f)
 	if err != nil {
@@ -42,7 +42,7 @@ func EmbedQRCode(url, inputPath, outputPath string) error {
 	if err != nil {
 		return err
 	}
-	defer outF.Close()
+	defer func() { _ = outF.Close() }()
 
 	return png.Encode(outF, stego)
 }
@@ -52,7 +52,7 @@ func ExtractAndDecode(inputPath, outputPath string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	defer f.Close()
+	defer func() { _ = f.Close() }()
 
 	img, _, err := image.Decode(f)
 	if err != nil {
@@ -79,7 +79,7 @@ func ExtractAndDecode(inputPath, outputPath string) (string, error) {
 		if err != nil {
 			return "", err
 		}
-		defer outF.Close()
+		defer func() { _ = outF.Close() }()
 
 		if err := png.Encode(outF, qrImg); err != nil {
 			return "", err
